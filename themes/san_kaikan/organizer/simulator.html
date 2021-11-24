@@ -1,0 +1,496 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+<meta name="description" content="使用予定の施設のご利用日数を入力すると、各施設ごとの利用料金と合計金額が表示されます。" />
+<meta name="keywords" content="シミュレーター,料金,計算" />
+<title>料金シミュレーター｜広島県立広島産業会館</title>
+<!--OGP-->
+<meta property="og:title" content="料金シミュレーター｜広島県立広島産業会館">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sangyoukaikan.jp/organizer/simulator.html">
+<meta property="og:image" content="https://sangyoukaikan.jp/themes/san_kaikan/img/facilities/gallery/photo01_big.jpg">
+<meta property="og:site_name" content="広島県立広島産業会館">
+<meta property="og:description" content="使用予定の施設のご利用日数を入力すると、各施設ごとの利用料金と合計金額が表示されます。">
+<!--OGP-->
+<!-- #include file="/include/head.html" -->
+<script>
+ACMS.Ready(function(){
+<!-- #include file="./_js_vals_20191001.html" -->
+	var totalp_all = 0;
+	var number_format = function(inval){
+		return inval.toString().replace(/(\d)(?=(\d\d\d)+$)/g , '$1,');
+	}
+
+	var calc = function(m){
+		totalp = 0;
+		totalp_all = 0;
+		var tmp_this = null;
+		$('.js_'+m+' select').each(function(){
+			tmp_this = $(this);
+			if(tmp_this.val() != ''){
+				if(tmp_this.hasClass('js_oth_day')){
+					tmp_h = tmp_this.parents('tr').find('.js_oth_h');
+					if(tmp_h.val() != ''){
+						totalp += parseInt(tmp_this.val()) *
+							parseInt(tmp_h.val()) *
+							tmp_this.data('price');
+					}
+				}else if(tmp_this.hasClass('js_oth_h')){
+					//
+				}else if(tmp_this.hasClass('js_day_by')){
+					var ct = tmp_this.parent().parent().find('.ct').val();
+					if(ct != ''){
+						if(tmp_this.data('snd_price')){
+							totalp += tmp_this.data('price') * parseInt(ct);
+							totalp += (parseInt(tmp_this.val()) - 1) * (tmp_this.data('snd_price') * parseInt(ct));
+						}else{
+							totalp += parseInt(tmp_this.val()) * tmp_this.data('price') * parseInt(ct);
+						}
+					}
+				}else if(tmp_this.hasClass('js_selval')){
+					totalp += parseInt(tmp_this.val());
+				}else{
+					var dct = parseInt(tmp_this.val());
+					if(tmp_this.data('snd_price')){
+						totalp += tmp_this.data('price');
+						totalp += (dct - 1) * tmp_this.data('snd_price');
+					}else{
+						totalp += dct * tmp_this.data('price');
+					}
+				}
+			}
+		});
+		$('.js_'+m+' .totalp').text(number_format(totalp));
+		return totalp;
+	}
+	var calc_all = function(){
+		totalp_all = calc('nishi') + calc('higashi') + calc('hon') + calc('bihin');
+		$('#totalp_all').text(number_format(totalp_all));
+	}
+
+	var clear_all = function(){
+		$('.totalp').text(0);
+		totalp_all = 0;
+	}
+
+	for(var kan in price_table){
+		var kan_table = price_table[kan];
+		for(var space in kan_table){
+			var space_table = kan_table[space];
+			for(var timespan in space_table){
+				var timespan_s = timespan;
+				if(timespan == 'oth'){
+					timespan += '_day';
+				}
+				if(isFinite(space_table[timespan_s])){
+					$('.js_'+kan+' .js_'+space+' .js_'+timespan+'').data('price',space_table[timespan_s]);
+				}else{
+					$('.js_'+kan+' .js_'+space+' .js_'+timespan+'').data('price',space_table[timespan_s]['fst']);
+					$('.js_'+kan+' .js_'+space+' .js_'+timespan+'').data('snd_price',space_table[timespan_s]['snd']);
+				}
+			}
+		}
+	}
+
+	$('.comTable select, .comTable .ct').change(function(){
+		calc_all();
+	});
+	$('input.reset').click(function(){
+		$(this).parents("table.comTable").find('select').val('');
+		$(this).parents("table.comTable").find('.ct').val('');
+		calc_all();
+	});
+
+	clear_all();
+});
+</script>
+<link href="../css/organizer.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<a name="top" id="top"></a>
+<div id="container">
+<!-- #include file="/include/header.html" -->
+<!-- #include file="/admin/action.html" -->
+<!-- #include file="/include/gnavi.html" -->
+
+	<ul id="pagePath">
+		<li><a rel="https" href="../">ホーム</a>&gt;</li>
+		<li><a rel="https" href="./">主催者の方へ</a>&gt;</li>
+		<li>料金シミュレーター</li>
+	</ul>
+	<div id="main">
+		<div id="conts">
+			<h1 class="headLine01"><span>料金シミュレーター<span class="textSpan">PRICE SIMULATOR</span></span></h1>
+			<p class="textP">使用予定の施設のご利用日数を入力すると、各施設ごとの利用料金と合計金額が表示されます。</p>
+			<ul class="comMenu comMenu04 clearfix">
+				<li><a href="#simu01"><span>西展示館</span></a></li>
+				<li><a href="#simu02"><span>東展示館</span></a></li>
+				<li><a href="#simu03"><span>本館</span></a></li>
+				<li><a href="#simu04"><span>有料備品</span></a></li>
+			</ul>
+			<h2 id="simu01" class="headLine02 h2Ttl"><span>西展示館</span></h2>
+			<table cellpadding="0" cellspacing="0" summary="" class="comTable js_nishi" id="">
+				<thead>
+					<tr>
+						<th rowspan="2" class="thStyle">ご利用<br />
+						施設名</th>
+						<th><strong>午前</strong><br />
+							<span>（9時～12時）</span></th>
+						<th><strong>午後</strong><br />
+							<span>（13時～17時）</span></th>
+						<th><strong>全日</strong><br />
+							<span>（9時～17時）</span></th>
+						<th colspan="2"><strong>左記以外</strong> <span class="fcRed">※1時間単位の単価</span><br />
+						<span>①7:00〜9:00 ②12:00〜13:00 ③17:00〜23:00</span></th>
+					</tr>
+					<tr>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用時間数</th>
+					</tr>
+				</thead>
+				<tbody align="center">
+					<tr class="js_ten_01">
+						<th class="thStyle">第１展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_ten_02">
+						<th class="thStyle">第２展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_ten_03">
+						<th class="thStyle">第３展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_ten_04">
+						<th class="thStyle">第４展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_hikae_01">
+						<th class="thStyle">第１控室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_hikae_02">
+						<th class="thStyle">第２控室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_hikae_03">
+						<th class="thStyle">第３控室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_hikae_04">
+						<th class="thStyle">第４控室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_hikae_05">
+						<th class="thStyle">第５控室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_hikae_06">
+						<th class="thStyle">第６控室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_sho_01">
+						<th class="thStyle">第１商談室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_sho_02">
+						<th class="thStyle">第２商談室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<th colspan="6" class="thStyleY taRight fsP8 simTotal"><input name="reset1" type="reset" class="reset" id="reset1" value="入力内容をクリア" />
+						西展示館 ご利用金額合計：<span class="fwBold fcBlack"><span class="totalp fsP10">0</span>円</span></th>
+					</tr>
+				</tfoot>
+			</table>
+			<h2 id="simu02" class="headLine02 h2Ttl"><span>東展示館</span></h2>
+			<table cellpadding="0" cellspacing="0" summary="" class="comTable js_higashi">
+				<thead>
+					<tr>
+						<th rowspan="2" class="thStyle">ご利用<br />
+						施設名</th>
+						<th><strong>午前</strong><br />
+							<span>（9時～12時）</span></th>
+						<th><strong>午後</strong><br />
+							<span>（13時～17時）</span></th>
+						<th><strong>全日</strong><br />
+							<span>（9時～17時）</span></th>
+						<th colspan="2"><strong>左記以外</strong> <span class="fcRed">※1時間単位の単価</span><br />
+						<span>①7:00〜9:00 ②12:00〜13:00 ③17:00〜23:00</span></th>
+					</tr>
+					<tr>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用時間数</th>
+					</tr>
+				</thead>
+				<tbody align="center">
+					<tr class="js_ten_01">
+						<th class="thStyle">第１展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_ten_02">
+						<th class="thStyle">第２展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_ten_03">
+						<th class="thStyle">第３展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_jimu_01">
+						<th class="thStyle">第１事務室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_jimu_02">
+						<th class="thStyle">第２事務室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_jimu_03">
+						<th class="thStyle">第３事務室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_stage">
+						<th class="thStyle">ステージ</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<th colspan="6" class="thStyleY taRight fsP8 simTotal"><input name="reset2" type="reset" class="reset" id="reset2" value="入力内容をクリア" />
+						東展示館 ご利用金額合計：<span class="fwBold fcBlack"><span class="totalp fsP10">0</span>円</span></th>
+					</tr>
+				</tfoot>
+			</table>
+			<h2 id="simu03" class="headLine02 h2Ttl"><span>本館</span></h2>
+			<table cellpadding="0" cellspacing="0" summary="" class="comTable js_hon">
+				<thead>
+					<tr>
+						<th rowspan="2" class="thStyle">ご利用<br />
+						施設名</th>
+						<th><strong>午前</strong><br />
+							<span>（9時～12時）</span></th>
+						<th><strong>午後</strong><br />
+							<span>（13時～17時）</span></th>
+						<th><strong>全日</strong><br />
+							<span>（9時～17時）</span></th>
+						<th colspan="2"><strong>左記以外</strong> <span class="fcRed">※1時間単位の単価</span><br />
+						<span>①7:00〜9:00 ②12:00〜13:00 ③17:00〜23:00</span></th>
+					</tr>
+					<tr>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用時間数</th>
+					</tr>
+				</thead>
+				<tbody align="center">
+					<tr class="js_ten_01">
+						<th class="thStyle">第１展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_ten_02">
+						<th class="thStyle">第２展示場</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_jimu_01">
+						<th class="thStyle">第１事務室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_jimu_02">
+						<th class="thStyle">第２事務室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+					<tr class="js_kaigi">
+						<th class="thStyle">会議室</th>
+<!-- #include file="./_select_rec.html" -->
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<th colspan="6" class="thStyleY taRight fsP8 simTotal"><input name="reset3" type="reset" class="reset" id="reset3" value="入力内容をクリア" />
+						本館 ご利用金額合計：<span class="fwBold fcBlack"><span class="totalp fsP10">0</span>円</span></th>
+					</tr>
+				</tfoot>
+			</table>
+
+			<h2 id="simu04" class="headLine02 h2Ttl"><span>有料備品</span></h2>
+			<table cellpadding="0" cellspacing="0" summary="" class="comTable js_bihin">
+				<thead>
+					<tr>
+						<th class="thStyle">ご利用備品</th>
+						<th>仕様</th>
+						<th class="thStyleY">ご利用日数</th>
+						<th class="thStyleY">ご利用数</th>
+					</tr>
+				</thead>
+				<tbody align="center">
+					<tr class="js_tukue">
+						<th class="thStyle">机</th>
+						<td align="center">W1800×D450×H700<br />
+						W600×D400×H600</td>
+						<td><select class="js_day_by">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td><input type="number" size="8" class="ct" min="0"> 脚</td>
+					</tr>
+					<tr class="js_isu">
+						<th class="thStyle">椅子（本館・東館）</th>
+						<td align="center">折りたたみ式</td>
+						<td><select class="js_day_by">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td><input type="number" size="8" class="ct" min="0"> 脚</td>
+					</tr>
+					<tr class="js_isu_n">
+						<th class="thStyle">椅子（西館）</th>
+						<td align="center">固定式・折りたたみ式</td>
+						<td><select class="js_day_by">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td><input type="number" size="8" class="ct" min="0"> 脚</td>
+					</tr>
+					<tr class="js_pt">
+						<th class="thStyle">パーテーション</th>
+						<td align="center">W1200×H1750</td>
+						<td><select class="js_day_by">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td><input type="number" size="8" class="ct" min="0"> 枚</td>
+					</tr>
+					<tr class="js_scr">
+						<th class="thStyle">特大スクリーン</th>
+						<td align="center">W5080×H3810</td>
+						<td><select class="js_day">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td>&nbsp;</td>
+					</tr>
+					<tr class="js_proj">
+						<th class="thStyle">液晶プロジェクター</th>
+						<td align="center">NEC<br />
+							NP-P501XJL-N</td>
+						<td><select class="js_day">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td>&nbsp;</td>
+					</tr>
+					<tr class="js_tv">
+						<th class="thStyle">テレビ</th>
+						<td align="center">32インチ</td>
+						<td><select class="js_day">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td>&nbsp;</td>
+					</tr>
+					<tr class="js_br">
+						<th class="thStyle">ブルーレイレコーダー</th>
+						<td align="center">&nbsp;</td>
+						<td><select class="js_day">
+<!-- #include file="./_dayselect.html" -->
+						</select></td>
+						<td>&nbsp;</td>
+					</tr>
+					<!--<tr class="js_table_cross">
+						<th class="thStyle">テーブルクロス</th>
+						<td align="center">W2700×D1600</td>
+						<td>
+<select style="display:none; user-select:none; visibility:hidden;" class="js_day_by">
+						<option value="1" selected="selected"></option>
+						</select></td>
+						<td><input type="number" size="8" class="ct" min="0"/>
+							枚</td>
+					</tr>-->
+					<tr class="js_wifi">
+						<th class="thStyle">無線インターネット利用</th>
+						<td align="center">&nbsp;</td>
+						<td><select class="js_selval">
+							<option value="" selected="selected">▼</option>
+							<option value="1260">半日（４時間以上）</option>
+							<option value="2520">１日（４時間超）</option>
+							<option value="3820">１日半</option>
+							<option value="5040">２日以上</option>
+						</select></td>
+						<td>&nbsp;</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<th colspan="4" class="thStyleY taRight fsP8 simTotal"><input name="reset4" type="reset" class="reset" id="reset4" value="入力内容をクリア" />
+						有料備品 ご利用金額合計：<span class="fwBold fcBlack"><span class="totalp fsP10">0</span>円</span></th>
+					</tr>
+				</tfoot>
+			</table>
+
+			<table class="comTable simTotal3">
+				<tr>
+					<td class="left">施設ご利用金額 総合計</td>
+					<td  align="right" class="right"><span class="totalp" id="totalp_all">0</span>円</td>
+				</tr>
+			</table>
+			<ul class="comBanner clearfix">
+				<li class="navi01">
+					<p class="title">ご利用料金</p>
+					<p class="text">各施設・備品等の<br />ご利用料金一覧です</p>
+					<div class="more"><a rel="https" href="usage_chage.html"><span>詳しくはこちら</span></a></div>
+				</li>
+				<li class="navi02">
+					<p class="title">料金<br />
+						シミュレーター</p>
+					<p class="text">イベント開催時の施設<br />利用料金をすぐに試算できます</p>
+					<div class="more"><a rel="https" href="simulator.html"><span>詳しくはこちら</span></a></div>
+				</li>
+				<li class="navi03">
+					<p class="title">利用申込書等<br />
+						ダウンロード</p>
+					<p class="text">利用申込書等、各種書類を<br />ダウンロード頂けます</p>
+					<div class="more"><a rel="https" href="download.html"><span>詳しくはこちら</span></a></div>
+				</li>
+				<li class="navi04">
+					<p class="title">会館<br />
+						空き情報</p>
+					<p class="text">ご利用予定日時の各施設の<br />空き状況をすぐに確認頂けます</p>
+					<div class="more"><a rel="https" href="hall.html"><span>詳しくはこちら</span></a></div>
+				</li>
+			</ul>
+		</div>
+		<div id="sideBar">
+			<div class="sTtlBox sTtlBox02 clearfix">
+				<div class="pho"><img src="../img/common/s_img04.gif" alt="" width="28" height="36" /></div>
+				<p><span>主催者の方へ</span>施設のご予約・ご利用について</p>
+			</div>
+			<ul class="sNavi sNavi02">
+				<li><a rel="https" href="./"><span>ご予約・ご利用について</span></a></li>
+				<li><a rel="https" href="usage_chage.html"><span>ご利用料金</span></a></li>
+				<li class="on"><a  rel="https" href="simulator.html"><span>料金シミュレーター</span></a></li>
+				<li><a rel="https" href="download.html"><span>ダウンロード</span></a></li>
+				<li class="lastNavi"><a rel="https" href="hall.html"><span>会館空き状況</span></a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="pageTop"><a href="#header">ページの先頭へ戻る</a></div>
+<!-- #include file="/include/footer.html" -->
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-65717565-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>
